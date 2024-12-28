@@ -1,6 +1,12 @@
 {
   "extends": "@adonisjs/tsconfig/tsconfig.app.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./inertia/lib/*"
+      ]
+    },
     "rootDir": "./",
     "outDir": "./build"
   },
