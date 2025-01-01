@@ -1,6 +1,6 @@
 import { Wallet } from "lucide-react"
-
 import { LoginForm } from "@/components/login-form"
+import { AuthProvider } from '~/stores/auth'
 
 export default function LoginPage() {
   return (
@@ -12,7 +12,9 @@ export default function LoginPage() {
           </div>
           My Money Map.
         </a>
-        <LoginForm />
+        <AuthProvider>
+          <LoginForm />
+        </AuthProvider>
       </div>
     </div>
   )
