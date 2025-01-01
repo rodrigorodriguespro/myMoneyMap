@@ -1,19 +1,16 @@
 import * as React from "react"
 import {
   AudioWaveform,
-  BookOpen,
-  Bot,
   Command,
-  Frame,
   GalleryVerticalEnd,
-  Map,
   PieChart,
-  Settings2,
-  SquareTerminal,
+  ListCheck,
+  NotebookText,
+  BadgeCheck,
+  CircleFadingPlus
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
@@ -50,108 +47,98 @@ const data = {
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Controle",
       url: "#",
-      icon: SquareTerminal,
+      icon: PieChart,
       isActive: true,
       items: [
         {
-          title: "History",
+          title: "Overview",
           url: "#",
         },
         {
-          title: "Starred",
+          title: "Dashboard",
           url: "#",
         },
         {
-          title: "Settings",
+          title: "Balanço",
+          url: "#",
+        },
+        {
+          title: "Calendário",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Lançamentos",
       url: "#",
-      icon: Bot,
+      icon: ListCheck,
       items: [
         {
-          title: "Genesis",
+          title: "Receber",
           url: "#",
         },
         {
-          title: "Explorer",
+          title: "Pagar",
           url: "#",
         },
         {
-          title: "Quantum",
+          title: "Crédito",
+          url: "#",
+        },
+        {
+          title: "Fixas",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Planejamento",
       url: "#",
-      icon: BookOpen,
+      icon: NotebookText,
       items: [
         {
-          title: "Introduction",
+          title: "Objetivos",
           url: "#",
         },
         {
-          title: "Get Started",
+          title: "Desejos",
           url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
+        }
       ],
     },
     {
-      title: "Settings",
+      title: "Compromissos",
       url: "#",
-      icon: Settings2,
+      icon: BadgeCheck,
       items: [
         {
-          title: "General",
+          title: "Pendências",
           url: "#",
         },
         {
-          title: "Team",
+          title: "Reservas",
           url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
+        }
       ],
     },
-  ],
-  projects: [
     {
-      name: "Design Engineering",
+      title: "Cadastros",
       url: "#",
-      icon: Frame,
+      icon: CircleFadingPlus,
+      items: [
+        {
+          title: "Categorias",
+          url: "#",
+        },
+        {
+          title: "Contas",
+          url: "#",
+        }
+      ],
     },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
+  ]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -162,7 +149,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
