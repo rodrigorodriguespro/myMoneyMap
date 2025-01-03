@@ -29,12 +29,11 @@ export function LoginForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      console.log(formData)
       await login(formData)
-      // const user = await me()
-      // if (user) {
-      //   window.location.href = "/overview"
-      // }
+      const user = await me()
+      if (user) {
+        window.location.href = "/overview"
+      }
     } catch (error) {
       console.log(error)
       alert("Erro ao fazer login")

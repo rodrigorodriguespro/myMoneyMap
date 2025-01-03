@@ -8,13 +8,17 @@ const AuthController = () => import('#controllers/auth_controller')
 router.on('/').renderInertia('home')
 router.on('/singup').renderInertia('singup')
 router.on('/dashboard').renderInertia('dashboard')
+router.on('/overview').renderInertia('dashboard')
 
 // Rotas de autenticação
-router.post('/register', [AuthController, 'register']).as('auth.register')
-router.post('/login', [AuthController, 'login']).as('auth.login')
-router.delete('/logout', [AuthController, 'logout']).as('auth.logout').use(middleware.auth())
-router.get('/me', [AuthController, 'me']).as('auth.me')
+router
+  .group(() => {
+    router.post('/register', [AuthController, 'register'])
+    router.post('/login', [AuthController, 'login'])
+    router.delete('/logout', [AuthController, 'logout']).use(middleware.auth())
+    router.get('/me', [AuthController, 'me']).use(middleware.auth())
+  })
+  .prefix('/auth')
 
 //Rotas de API
 router.resource('user', UsersController)
-

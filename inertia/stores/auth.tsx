@@ -66,17 +66,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const login = async (payload: LoginPayload) => {
-    const result = await api('POST', '/login', payload)
+    const result = await api('POST', '/auth/login', payload)
     authenticate(result)
   }
 
   const register = async (payload: RegisterPayload) => {
-    const result = await api('POST', '/register', payload)
+    const result = await api('POST', '/auth/register', payload)
     authenticate(result)
   }
 
   const logout = async () => {
-    await api('DELETE', '/logout')
+    await api('DELETE', '/auth/logout')
     setToken(null)
     setUser(null)
     if (typeof window !== 'undefined') {
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const me = async () => {
-    const result = await api('GET', '/me')
+    const result = await api('GET', '/auth/me')
     setUser(result.user)
     return result.user
   }
