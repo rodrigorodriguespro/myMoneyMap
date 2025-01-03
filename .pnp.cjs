@@ -78,6 +78,7 @@ const RAW_RUNTIME_STATE =
           ["tailwind-merge", "npm:2.6.0"],\
           ["tailwindcss", "npm:3.4.17"],\
           ["tailwindcss-animate", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:1.0.7"],\
+          ["ts-node", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:10.9.2"],\
           ["ts-node-maintained", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:10.9.4"],\
           ["typescript", "patch:typescript@npm%3A5.7.2#optional!builtin<compat/typescript>::version=5.7.2&hash=8c6c40"],\
           ["vite", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:6.0.6"]\
@@ -8667,6 +8668,7 @@ const RAW_RUNTIME_STATE =
           ["tailwind-merge", "npm:2.6.0"],\
           ["tailwindcss", "npm:3.4.17"],\
           ["tailwindcss-animate", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:1.0.7"],\
+          ["ts-node", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:10.9.2"],\
           ["ts-node-maintained", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:10.9.4"],\
           ["typescript", "patch:typescript@npm%3A5.7.2#optional!builtin<compat/typescript>::version=5.7.2&hash=8c6c40"],\
           ["vite", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:6.0.6"]\
@@ -11349,6 +11351,51 @@ const RAW_RUNTIME_STATE =
           ["ts-morph", "npm:23.0.0"],\
           ["@ts-morph/common", "npm:0.24.0"],\
           ["code-block-writer", "npm:13.0.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["ts-node", [\
+      ["npm:10.9.2", {\
+        "packageLocation": "../../snap/code/179/.local/share/yarn/berry/cache/ts-node-npm-10.9.2-3f3890b9ac-10c0.zip/node_modules/ts-node/",\
+        "packageDependencies": [\
+          ["ts-node", "npm:10.9.2"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:10.9.2", {\
+        "packageLocation": "./.yarn/__virtual__/ts-node-virtual-0631dc5284/3/snap/code/179/.local/share/yarn/berry/cache/ts-node-npm-10.9.2-3f3890b9ac-10c0.zip/node_modules/ts-node/",\
+        "packageDependencies": [\
+          ["ts-node", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:10.9.2"],\
+          ["@cspotcode/source-map-support", "npm:0.8.1"],\
+          ["@swc/core", "virtual:41f1ad793ca57775a9f69f82c690004273f1f0250ec72725a412b6b1f47fffdb8c02b36c7d7ef3785381eb33162081a55ab01deab1e8f8a30fbef666d2192ffc#npm:1.10.1"],\
+          ["@swc/wasm", null],\
+          ["@tsconfig/node10", "npm:1.0.11"],\
+          ["@tsconfig/node12", "npm:1.0.11"],\
+          ["@tsconfig/node14", "npm:1.0.3"],\
+          ["@tsconfig/node16", "npm:1.0.4"],\
+          ["@types/node", "npm:22.10.3"],\
+          ["@types/swc__core", null],\
+          ["@types/swc__wasm", null],\
+          ["@types/typescript", null],\
+          ["acorn", "npm:8.14.0"],\
+          ["acorn-walk", "npm:8.3.4"],\
+          ["arg", "npm:4.1.3"],\
+          ["create-require", "npm:1.1.1"],\
+          ["diff", "npm:4.0.2"],\
+          ["make-error", "npm:1.3.6"],\
+          ["typescript", "patch:typescript@npm%3A5.7.2#optional!builtin<compat/typescript>::version=5.7.2&hash=8c6c40"],\
+          ["v8-compile-cache-lib", "npm:3.0.1"],\
+          ["yn", "npm:3.1.1"]\
+        ],\
+        "packagePeers": [\
+          "@swc/core",\
+          "@swc/wasm",\
+          "@types/node",\
+          "@types/swc__core",\
+          "@types/swc__wasm",\
+          "@types/typescript",\
+          "typescript"\
         ],\
         "linkType": "HARD"\
       }]\
