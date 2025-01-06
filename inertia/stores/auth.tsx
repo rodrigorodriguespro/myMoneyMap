@@ -4,6 +4,11 @@ interface User {
   id: number
   name: string
   email: string
+  workspaces?: Array<{
+    id: number
+    name: string
+    icon?: string
+  }>
 }
 
 interface AuthContextType {

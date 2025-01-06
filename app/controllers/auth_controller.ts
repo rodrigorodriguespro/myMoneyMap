@@ -29,8 +29,13 @@ export default class AuthController {
 
   async me({ auth }: HttpContext) {
     await auth.check()
+    const user = auth.user
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
+    await user.load('workspaces')
     return {
-      user: auth.user,
+      user,
     }
   }
 }
