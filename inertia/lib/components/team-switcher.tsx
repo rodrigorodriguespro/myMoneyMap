@@ -1,5 +1,6 @@
 import * as React from "react"
-import { ChevronsUpDown, Plus } from "lucide-react"
+import { ChevronsUpDown, Plus, GalleryVerticalEnd } from "lucide-react"
+import { useAuth } from "~/stores/auth"
 
 import {
   DropdownMenu,
@@ -17,17 +18,28 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-export function TeamSwitcher({
-  teams,
-}: {
-  teams: {
-    name: string
-    logo: React.ElementType
-    plan: string
-  }[]
-}) {
+const iconComponents = {
+  GalleryVerticalEnd,
+  ChevronsUpDown,
+  Plus,
+} as const;
+
+type IconName = keyof typeof iconComponents;
+
+export function TeamSwitcher() {
+  const { user, activeWorkspace, setActiveWorkspace } = useAuth()
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+
+  if (!user || !user.workspaces) {
+    return null
+  }
+
+  const ActiveWorkspaceIcon = activeWorkspace?.icon
+
+  const DynamicIcon = ({ name, ...props }: { name: IconName } & React.SVGProps<SVGSVGElement>) => {
+    const IconComponent = iconComponents[name];
+    return IconComponent ? <IconComponent {...props} /> : null;
+  };
 
   return (
     <SidebarMenu>
@@ -39,13 +51,18 @@ export function TeamSwitcher({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <activeTeam.logo className="size-4" />
+                {activeWorkspace?.icon && (
+                  <DynamicIcon
+                    name={activeWorkspace.icon as IconName}
+                    className="size-4"
+                  />
+                )}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {activeTeam.name}
+                  {activeWorkspace?.name}
                 </span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
+                <span className="truncate text-xs">Pessoal</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -59,25 +76,32 @@ export function TeamSwitcher({
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               Carteiras
             </DropdownMenuLabel>
-            {teams.map((team, index) => (
-              <DropdownMenuItem
-                key={team.name}
-                onClick={() => setActiveTeam(team)}
-                className="gap-2 p-2"
-              >
-                <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <team.logo className="size-4 shrink-0" />
-                </div>
-                {team.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            ))}
+            {user.workspaces.map((workspace, index) => {
+              return (
+                <DropdownMenuItem
+                  key={workspace.id}
+                  onClick={() => setActiveWorkspace(workspace)}
+                  className="gap-2 p-2"
+                >
+                  <div className="flex size-6 items-center justify-center rounded-sm border">
+                    {workspace.icon && (
+                      <DynamicIcon
+                        name={workspace.icon as IconName}
+                        className="size-4 shrink-0"
+                      />
+                    )}
+                  </div>
+                  {workspace.name}
+                  <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              )
+            })}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">Adicionar Carteira</div>
+              <div className="font-medium text-muted-foreground">Novo Workspace</div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
