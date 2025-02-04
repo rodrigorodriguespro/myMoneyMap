@@ -10,6 +10,7 @@ router.on('/').renderInertia('home')
 router.on('/singup').renderInertia('singup')
 router.on('/dashboard').renderInertia('dashboard')
 router.on('/overview').renderInertia('overview')
+router.on('/register/categories').renderInertia('categories')
 
 // Rotas de autenticação
 router

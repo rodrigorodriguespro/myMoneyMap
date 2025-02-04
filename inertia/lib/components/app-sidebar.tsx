@@ -130,7 +130,7 @@ const data = {
       items: [
         {
           title: "Categorias",
-          url: "#",
+          url: "/register/categories",
         },
         {
           title: "Contas",
