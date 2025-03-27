@@ -11,7 +11,8 @@
     "test": "node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "migration": "node ace migration:run"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
@@ -92,7 +93,8 @@
     "react-dom": "^19.0.0",
     "reflect-metadata": "^0.2.2",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "yarn": "^1.22.22"
   },
   "hotHook": {
     "boundaries": [
