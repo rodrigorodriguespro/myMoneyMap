@@ -54,7 +54,7 @@ const data = {
       items: [
         {
           title: "Overview",
-          url: "#",
+          url: "/overview",
         },
         {
           title: "Dashboard",
@@ -134,7 +134,7 @@ const data = {
         },
         {
           title: "Contas",
-          url: "#",
+          url: "/register/accounts",
         }
       ],
     },

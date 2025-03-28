@@ -12,6 +12,9 @@ router.on('/dashboard').renderInertia('dashboard')
 router.on('/overview').renderInertia('overview')
 router.on('/register/categories').renderInertia('categories')
 
+// Rotas registros de contas
+router.on('/register/accounts').renderInertia('register/accounts')
+
 // Rotas de autenticação
 router
   .group(() => {
