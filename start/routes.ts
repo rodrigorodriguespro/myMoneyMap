@@ -28,3 +28,12 @@ router
 //Rotas de API
 router.resource('user', UsersController)
 router.resource('workspace', WorkspaceController)
+
+// Rotas de Registros de contas
+router
+  .group(() => {
+    router.resource('account_banks', 'AccountBanksController')
+    router.resource('account_credit_banks', 'AccountCreditBanksController')
+  })
+  .prefix('/api/register')
+  .use(middleware.auth())
