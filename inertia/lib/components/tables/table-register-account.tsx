@@ -1,42 +1,88 @@
+import React from "react";
 import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-    TableFooter
-  } from "@/components/ui/table" 
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableFooter
+} from "@/components/ui/table";
+import { formatCurrency } from "@/lib/utils";
 
-export function TableRegisterAccountBank() {
+interface AccountBank {
+  id?: number;
+  userId: number;
+  workspaceId: number;
+  icon?: string | null;
+  name: string;
+  initialBalance: number;
+  initialBalanceDate: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface TableRegisterAccountBankProps {
+  data: AccountBank[];
+}
+
+export function TableRegisterAccountBank({ data = [] }: TableRegisterAccountBankProps) {
+  // Calcular o total do saldo inicial
+  const totalInitialBalance = data.reduce((total, account) => total + account.initialBalance, 0);
+
+  // Formatar data para exibição
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   return (
-      <>
-        <Table>
-            <TableCaption>A list of your recent invoices.</TableCaption>
-            <TableHeader>
-            <TableRow>
+    <>
+      <Table>
+        <TableCaption>Lista de contas bancárias</TableCaption>
+        <TableHeader>
+          <TableRow>
             <TableHead className="w-[100px]">Descrição</TableHead>
             <TableHead>Saldo Inicial</TableHead>
             <TableHead>Data Saldo Inicial</TableHead>
-            <TableHead className="text-right">Saldo Hoje</TableHead>
-            </TableRow>
-            </TableHeader>
-            <TableBody>
+            <TableHead className="text-right">Saldo Atual</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.length > 0 ? (
+            data.map((account) => (
+              <TableRow key={account.id}>
+                <TableCell className="font-medium">
+                  {account.icon && (
+                    <span className={`${account.icon} mr-2 text-lg inline-block align-middle`}></span>
+                  )}
+                  {account.name}
+                </TableCell>
+                <TableCell>{formatCurrency(account.initialBalance)}</TableCell>
+                <TableCell>{formatDate(account.initialBalanceDate)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(account.initialBalance)}</TableCell>
+              </TableRow>
+            ))
+          ) : (
             <TableRow>
-            <TableCell className="font-medium">Itaú</TableCell>
-            <TableCell>R$ 8.422,03</TableCell>
-            <TableCell>26/03/2025</TableCell>
-            <TableCell className="text-right">R$ 8.173,89</TableCell>
+              <TableCell colSpan={4} className="text-center">Nenhuma conta encontrada</TableCell>
             </TableRow>
-            </TableBody>
-            <TableFooter>
+          )}
+        </TableBody>
+        {data.length > 0 && (
+          <TableFooter>
             <TableRow>
-            <TableCell colSpan={3}>Total</TableCell>
-            <TableCell className="text-right">$2,500.00</TableCell>
+              <TableCell colSpan={3}>Total</TableCell>
+              <TableCell className="text-right">{formatCurrency(totalInitialBalance)}</TableCell>
             </TableRow>
-            </TableFooter>
-        </Table>
-      </>
-  )
+          </TableFooter>
+        )}
+      </Table>
+    </>
+  );
 }
