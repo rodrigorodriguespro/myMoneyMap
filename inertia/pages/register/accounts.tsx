@@ -7,10 +7,16 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TableRegisterAccountBank } from "@/components/tables/table-register-account"
+import { TableRegisterAccountCreditBank } from "@/components/tables/table-register-account-credit"
 import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import DashLayout from "~/layouts/DashLayout"
+import { CirclePlus } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
 
 function Overview() {
   return (
@@ -34,13 +40,25 @@ function Overview() {
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-          </div>
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+        <div className="flex flex-1 flex-col items-center gap-4 p-4 pt-0 mt-5">
+            <Tabs defaultValue="account" className="w-[80%]">
+              <div className="flex items-center">
+                <TabsList>
+                  <TabsTrigger value="account">Conta</TabsTrigger>
+                  <TabsTrigger value="credit">Crédito</TabsTrigger>
+                </TabsList>
+                <Button variant="outline" className="ml-4 flex items-center gap-1 px-3 py-1 text-sm font-medium rounded">
+                  <CirclePlus className="size-4" />
+                  Adicionar
+                </Button>
+              </div>
+              <TabsContent value="account">
+                <TableRegisterAccountBank />
+              </TabsContent>
+              <TabsContent value="credit">
+                <TableRegisterAccountCreditBank />
+              </TabsContent>
+            </Tabs>
         </div>
       </>
   )
