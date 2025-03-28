@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Importação dos ícones de bancos brasileiros */
+@import url('../assets/icons-banks/icones-bancos-brasileiros.css');
+
 /* ... */
 
 * {
