@@ -15,7 +15,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import DashLayout from "~/layouts/DashLayout";
 import { CirclePlus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AccountForm from "@/components/forms/account-form";
 import { useAccountBankService } from "@/services/account-bank-service";
 import { useAccountCreditBankService } from "@/services/account-credit-bank-service";
@@ -29,7 +29,9 @@ function Overview() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentAccount, setCurrentAccount] = useState(null);
+
   const accountBankService = useAccountBankService();
   const accountCreditBankService = useAccountCreditBankService();
   const { activeWorkspace, user } = useAuth();
@@ -72,29 +74,63 @@ function Overview() {
     }
   };
 
+  const handleEdit = (account) => {
+    setCurrentAccount(account);
+    setIsEditing(true);
+    setIsDialogOpen(false); // Fecha o diálogo antes de reabrir para garantir re-renderização
+    setTimeout(() => setIsDialogOpen(true), 0); // Reabre o diálogo após um pequeno atraso
+  };
+
   const handleFormSubmit = async (formData) => {
     try {
-      // Adiciona userId e workspaceId ao formData
-      const dataWithIds = {
-        ...formData,
-        userId: user?.id,
-        workspaceId: activeWorkspace?.id,
-      };
-
-      if (activeTab === "account") {
-        await accountBankService.create(dataWithIds);
-        await fetchAccounts();
+      if (isEditing && currentAccount) {
+        // Atualização de conta existente
+        if (activeTab === "account") {
+          await accountBankService.update(currentAccount.id, formData);
+          await fetchAccounts();
+        } else {
+          await accountCreditBankService.update(currentAccount.id, formData);
+          await fetchCreditAccounts();
+        }
       } else {
-        await accountCreditBankService.create(dataWithIds);
-        await fetchCreditAccounts();
+        // Criação de nova conta
+        const dataWithIds = {
+          ...formData,
+          userId: user?.id,
+          workspaceId: activeWorkspace?.id,
+        };
+
+        if (activeTab === "account") {
+          await accountBankService.create(dataWithIds);
+          await fetchAccounts();
+        } else {
+          await accountCreditBankService.create(dataWithIds);
+          await fetchCreditAccounts();
+        }
       }
 
-      // Fecha o diálogo após submissão bem-sucedida
+      // Fecha o diálogo e reseta o estado de edição
       setIsDialogOpen(false);
+      setIsEditing(false);
+      setCurrentAccount(null);
     } catch (error) {
-      console.error(`Erro ao criar ${activeTab === "account" ? "conta" : "conta de crédito"}:`, error);
-      setError(`Erro ao criar ${activeTab === "account" ? "conta" : "conta de crédito"}. Verifique os dados e tente novamente.`);
+      console.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} ${activeTab === "account" ? "conta" : "conta de crédito"}:`, error);
+      setError(`Erro ao ${isEditing ? 'atualizar' : 'criar'} ${activeTab === "account" ? "conta" : "conta de crédito"}. Verifique os dados e tente novamente.`);
     }
+  };
+
+  const handleRefresh = () => {
+    if (activeTab === "account") {
+      fetchAccounts();
+    } else {
+      fetchCreditAccounts();
+    }
+  };
+
+  const handleAddClick = () => {
+    setIsEditing(false);
+    setCurrentAccount(null);
+    setIsDialogOpen(true);
   };
 
   const renderEmptyState = () => (
@@ -129,34 +165,20 @@ function Overview() {
         </div>
       </header>
       <div className="flex flex-1 flex-col items-center gap-4 p-4 pt-0 mt-5">
-        <Tabs defaultValue="account" className="w-[80%]" onValueChange={setActiveTab}>
+        <Tabs defaultValue="account" className="w-[90%]" onValueChange={setActiveTab}>
           <div className="flex items-center justify-between w-full mb-4">
             <TabsList>
               <TabsTrigger value="account">Conta</TabsTrigger>
               <TabsTrigger value="credit">Crédito</TabsTrigger>
             </TabsList>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="ml-4 flex items-center gap-1 px-3 py-1 text-sm font-medium rounded"
-                >
-                  <CirclePlus className="size-4" />
-                  Adicionar
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {activeTab === "account" ? "Adicionar Conta" : "Adicionar Conta de Crédito"}
-                  </DialogTitle>
-                </DialogHeader>
-                <AccountForm
-                  onSubmit={handleFormSubmit}
-                  type={activeTab}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button
+              variant="outline"
+              className="ml-4 flex items-center gap-1 px-3 py-1 text-sm font-medium rounded"
+              onClick={handleAddClick}
+            >
+              <CirclePlus className="size-4" />
+              Adicionar
+            </Button>
           </div>
           
           {error && (
@@ -173,7 +195,20 @@ function Overview() {
                 <p>Carregando...</p>
               </div>
             ) : accounts.length > 0 ? (
-              <TableRegisterAccountBank data={accounts} />
+              <TableRegisterAccountBank 
+                data={accounts} 
+                onEdit={handleEdit} 
+                onDelete={async (account) => {
+                  try {
+                    await accountBankService.delete(account.id);
+                    handleRefresh();
+                  } catch (error) {
+                    console.error("Erro ao excluir conta:", error);
+                    setError("Erro ao excluir conta. Tente novamente mais tarde.");
+                  }
+                }} 
+                onRefresh={handleRefresh} 
+              />
             ) : (
               renderEmptyState()
             )}
@@ -184,13 +219,36 @@ function Overview() {
                 <p>Carregando...</p>
               </div>
             ) : creditAccounts.length > 0 ? (
-              <TableRegisterAccountCreditBank data={creditAccounts} />
+              <TableRegisterAccountCreditBank 
+                data={creditAccounts} 
+                onEdit={handleEdit} 
+                onRefresh={handleRefresh} 
+              />
             ) : (
               renderEmptyState()
             )}
           </TabsContent>
         </Tabs>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {isEditing 
+                ? activeTab === "account" ? "Editar Conta" : "Editar Conta de Crédito"
+                : activeTab === "account" ? "Adicionar Conta" : "Adicionar Conta de Crédito"
+              }
+            </DialogTitle>
+          </DialogHeader>
+          <AccountForm
+            onSubmit={handleFormSubmit}
+            type={activeTab}
+            initialData={currentAccount}
+            isEditing={isEditing}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

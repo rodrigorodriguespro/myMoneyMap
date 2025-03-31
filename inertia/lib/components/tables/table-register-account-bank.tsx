@@ -18,48 +18,47 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../../components/ui/dialog";
-import { formatCurrency } from "../../lib/utils";
-import { useAccountCreditBankService } from "../../services/account-credit-bank-service";
+import { formatCurrency, formatDate } from "../../lib/utils";
+import { useAccountBankService } from "../../services/account-bank-service";
 
-interface AccountCreditBank {
+interface AccountBank {
   id?: number;
   userId: number;
   workspaceId: number;
   icon?: string | null;
   name: string;
-  closing: number;
-  maturity: number;
-  totalLimit: number;
+  initialBalance: number;
+  initialBalanceDate: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
-interface TableRegisterAccountCreditBankProps {
-  data: AccountCreditBank[];
-  onEdit?: (account: AccountCreditBank) => void;
+interface TableRegisterAccountBankProps {
+  data: AccountBank[];
+  onEdit?: (account: AccountBank) => void;
   onRefresh?: () => void;
 }
 
-export function TableRegisterAccountCreditBank({ 
+export function TableRegisterAccountBank({ 
   data = [], 
   onEdit,
   onRefresh
-}: TableRegisterAccountCreditBankProps) {
+}: TableRegisterAccountBankProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [accountToDelete, setAccountToDelete] = useState<AccountCreditBank | null>(null);
+  const [accountToDelete, setAccountToDelete] = useState<AccountBank | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const accountCreditBankService = useAccountCreditBankService();
+  const accountBankService = useAccountBankService();
 
-  // Calcular o limite total
-  const totalLimit = data.reduce((total, account) => total + account.totalLimit, 0);
+  // Calcular o saldo total
+  const totalBalance = data.reduce((total, account) => total + account.initialBalance, 0);
 
-  const handleEditClick = (account: AccountCreditBank) => {
+  const handleEditClick = (account: AccountBank) => {
     if (onEdit) {
       onEdit(account);
     }
   };
 
-  const handleDeleteClick = (account: AccountCreditBank) => {
+  const handleDeleteClick = (account: AccountBank) => {
     setAccountToDelete(account);
     setIsDeleteDialogOpen(true);
   };
@@ -68,7 +67,7 @@ export function TableRegisterAccountCreditBank({
     if (accountToDelete?.id) {
       try {
         setIsDeleting(true);
-        await accountCreditBankService.delete(accountToDelete.id);
+        await accountBankService.delete(accountToDelete.id);
         
         // Atualizar a lista após a exclusão
         if (onRefresh) {
@@ -77,7 +76,7 @@ export function TableRegisterAccountCreditBank({
         
         setIsDeleteDialogOpen(false);
       } catch (error) {
-        console.error("Erro ao excluir conta de crédito:", error);
+        console.error("Erro ao excluir conta bancária:", error);
       } finally {
         setIsDeleting(false);
       }
@@ -87,13 +86,12 @@ export function TableRegisterAccountCreditBank({
   return (
     <>
       <Table>
-        <TableCaption>Lista de contas de crédito</TableCaption>
+        <TableCaption>Lista de contas bancárias</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[100px]">Descrição</TableHead>
-            <TableHead>Dia de Fechamento</TableHead>
-            <TableHead>Dia de Vencimento</TableHead>
-            <TableHead className="text-right">Limite Total</TableHead>
+            <TableHead>Data inicial</TableHead>
+            <TableHead className="text-right">Saldo Inicial</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -107,9 +105,8 @@ export function TableRegisterAccountCreditBank({
                   )}
                   {account.name}
                 </TableCell>
-                <TableCell>{account.closing}</TableCell>
-                <TableCell>{account.maturity}</TableCell>
-                <TableCell className="text-right">{formatCurrency(account.totalLimit)}</TableCell>
+                <TableCell>{formatDate(account.initialBalanceDate)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(account.initialBalance)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button
@@ -132,15 +129,15 @@ export function TableRegisterAccountCreditBank({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="text-center">Nenhuma conta de crédito encontrada</TableCell>
+              <TableCell colSpan={4} className="text-center">Nenhuma conta bancária encontrada</TableCell>
             </TableRow>
           )}
         </TableBody>
         {data.length > 0 && (
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={3}>Total</TableCell>
-              <TableCell className="text-right">{formatCurrency(totalLimit)}</TableCell>
+              <TableCell colSpan={2}>Total</TableCell>
+              <TableCell className="text-right">{formatCurrency(totalBalance)}</TableCell>
               <TableCell></TableCell>
             </TableRow>
           </TableFooter>
@@ -152,7 +149,7 @@ export function TableRegisterAccountCreditBank({
           <DialogHeader>
             <DialogTitle>Confirmar exclusão</DialogTitle>
             <DialogDescription>
-              Você está prestes a excluir a conta de crédito "{accountToDelete?.name}".
+              Você está prestes a excluir a conta bancária "{accountToDelete?.name}".
               Esta ação excluirá todos os registros vinculados a esta conta e é irreversível.
               Tem certeza que deseja continuar?
             </DialogDescription>

@@ -8564,6 +8564,7 @@ __metadata:
     postcss: "npm:^8.4.49"
     prettier: "npm:^3.4.2"
     react: "npm:^19.0.0"
+    react-currency-input-field: "npm:^3.10.0"
     react-dom: "npm:^19.0.0"
     reflect-metadata: "npm:^0.2.2"
     tailwind-merge: "npm:^2.6.0"
@@ -9696,6 +9697,15 @@ __metadata:
     iconv-lite: "npm:0.6.3"
     unpipe: "npm:1.0.0"
   checksum: 10c0/f8daf4b724064a4811d118745a781ca0fb4676298b8adadfd6591155549cfea0a067523cf7dd3baeb1265fecc9ce5dfb2fc788c12c66b85202a336593ece0f87
+  languageName: node
+  linkType: hard
+
+"react-currency-input-field@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "react-currency-input-field@npm:3.10.0"
+  peerDependencies:
+    react: ^16.9.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/251ccbacb18202e4236bab1b58b414fa12983601498ffc7c9dda8dfb92e0729d6eca73e7f00e3270165a2922ba2ac769446418d86e90f744c39caec5899751f5
   languageName: node
   linkType: hard
 

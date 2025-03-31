@@ -2,16 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "~/stores/auth";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from "@/components/ui/select";
 
-// Lista de ícones de bancos disponíveis
 const bankIcons = [
   { class: "ibb-sicredi", name: "Sicredi" },
   { class: "ibb-sicoob", name: "Sicoob" },
@@ -45,7 +38,7 @@ interface AccountFormProps {
 
 const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: AccountFormProps) => {
   const { user, activeWorkspace } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     name: "",
     icon: "",
@@ -54,10 +47,12 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
       : { closing: "", maturity: "", totalLimit: "" }),
   });
 
-  // Preenche o formulário com dados iniciais quando estiver editando
+  const [selectedIconClass, setSelectedIconClass] = useState<string>("");
+
   useEffect(() => {
     if (initialData && isEditing) {
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         name: initialData.name || "",
         icon: initialData.icon || "",
         ...(type === "account" 
@@ -72,9 +67,13 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
               maturity: initialData.maturity?.toString() || "",
               totalLimit: initialData.totalLimit?.toString() || ""
             }),
-      });
+      }));
+
+      if (initialData.icon && initialData.icon !== selectedIconClass) {
+        setSelectedIconClass(initialData.icon);
+      }
     }
-  }, [initialData, isEditing, type]);
+  }, [initialData, isEditing, type, selectedIconClass]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -82,15 +81,16 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
   };
 
   const handleIconSelect = (value) => {
+    setSelectedIconClass(value);
     setFormData((prev) => ({ ...prev, icon: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Converte valores numéricos
+
     const processedData = {
       ...formData,
+      icon: selectedIconClass || formData.icon,
       ...(type === "account" 
         ? { 
             initialBalance: parseFloat(formData.initialBalance) || 0,
@@ -101,8 +101,28 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
             totalLimit: parseFloat(formData.totalLimit) || 0,
           }),
     };
-    
+
     onSubmit(processedData);
+  };
+
+  const getSelectedIconName = (iconClass) => {
+    const icon = bankIcons.find(icon => icon.class === iconClass);
+    if (icon) return icon.name;
+    if (iconClass) return iconClass;
+    return "Selecione um ícone";
+  };
+
+  const renderSelectValue = () => {
+    if (!selectedIconClass) {
+      return "Selecione um ícone";
+    }
+
+    return (
+      <div className="flex items-center">
+        <span className={`${selectedIconClass} mr-2 text-xl`}></span>
+        <span>{getSelectedIconName(selectedIconClass)}</span>
+      </div>
+    );
   };
 
   return (
@@ -118,15 +138,17 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
           required 
         />
       </div>
-      
+
       <div>
         <Label htmlFor="icon">Ícone</Label>
         <Select 
-          value={formData.icon} 
+          value={selectedIconClass}
           onValueChange={handleIconSelect}
         >
           <SelectTrigger id="icon" className="w-full">
-            <SelectValue placeholder="Selecione um ícone" />
+            <SelectValue placeholder="Selecione um ícone">
+              {renderSelectValue()}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {bankIcons.map((icon) => (
@@ -140,7 +162,7 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
           </SelectContent>
         </Select>
       </div>
-      
+
       {type === "account" ? (
         <>
           <div>
@@ -148,15 +170,13 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
             <Input 
               id="initialBalance"
               name="initialBalance" 
-              type="number"
-              step="0.01"
               value={formData.initialBalance} 
               onChange={handleChange} 
-              placeholder="0.00" 
+              placeholder="0,00" 
               required 
             />
           </div>
-          
+
           <div>
             <Label htmlFor="initialBalanceDate">Data do Saldo Inicial</Label>
             <Input 
@@ -171,52 +191,52 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
         </>
       ) : (
         <>
-          <div>
-            <Label htmlFor="closing">Dia de Fechamento</Label>
-            <Input 
-              id="closing"
-              name="closing" 
-              type="number"
-              min="1"
-              max="31"
-              value={formData.closing} 
-              onChange={handleChange} 
-              placeholder="Ex: 15" 
-              required 
-            />
+          <div className="flex space-x-4">
+            <div className="flex-1">
+              <Label htmlFor="closing">Dia de Fechamento</Label>
+              <Input 
+                id="closing"
+                name="closing" 
+                type="number"
+                min="1"
+                max="31"
+                value={formData.closing} 
+                onChange={handleChange} 
+                placeholder="Ex: 15" 
+                required 
+              />
+            </div>
+
+            <div className="flex-1">
+              <Label htmlFor="maturity">Dia de Vencimento</Label>
+              <Input 
+                id="maturity"
+                name="maturity" 
+                type="number"
+                min="1"
+                max="31"
+                value={formData.maturity} 
+                onChange={handleChange} 
+                placeholder="Ex: 22" 
+                required 
+              />
+            </div>
           </div>
-          
-          <div>
-            <Label htmlFor="maturity">Dia de Vencimento</Label>
-            <Input 
-              id="maturity"
-              name="maturity" 
-              type="number"
-              min="1"
-              max="31"
-              value={formData.maturity} 
-              onChange={handleChange} 
-              placeholder="Ex: 22" 
-              required 
-            />
-          </div>
-          
+
           <div>
             <Label htmlFor="totalLimit">Limite Total</Label>
             <Input 
               id="totalLimit"
               name="totalLimit" 
-              type="number"
-              step="0.01"
               value={formData.totalLimit} 
               onChange={handleChange} 
-              placeholder="0.00" 
+              placeholder="0,00" 
               required 
             />
           </div>
         </>
       )}
-      
+
       <Button type="submit" className="w-full">
         {isEditing ? "Atualizar" : "Adicionar"}
       </Button>
