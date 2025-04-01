@@ -4,6 +4,8 @@ import { middleware } from '#start/kernel'
 const UsersController = () => import('#controllers/users_controller')
 const AuthController = () => import('#controllers/auth_controller')
 const WorkspaceController = () => import('#controllers/workspaces_controller')
+const AccountBanksController = () => import('#controllers/register/account_banks_controller')
+const AccountCreditBanksController = () => import('#controllers/register/account_credit_banks_controller')
 
 // Rotas de views
 router.on('/').renderInertia('home')
@@ -28,3 +30,12 @@ router
 //Rotas de API
 router.resource('user', UsersController)
 router.resource('workspace', WorkspaceController)
+
+// Rotas de Registros de contas
+router
+  .group(() => {
+    router.resource('account_banks', AccountBanksController)
+    router.resource('account_credit_banks', AccountCreditBanksController)
+  })
+  .prefix('/api/register')
+  .use(middleware.auth())
