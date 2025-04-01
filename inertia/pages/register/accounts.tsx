@@ -75,10 +75,16 @@ function Overview() {
   };
 
   const handleEdit = (account) => {
-    setCurrentAccount(account);
-    setIsEditing(true);
-    setIsDialogOpen(false); // Fecha o diálogo antes de reabrir para garantir re-renderização
-    setTimeout(() => setIsDialogOpen(true), 0); // Reabre o diálogo após um pequeno atraso
+    // Primeiro limpa e depois define os valores para evitar problemas de renderização
+    setIsEditing(false);
+    setCurrentAccount(null);
+    
+    // Pequeno timeout para garantir que o estado foi limpo antes de definir novos valores
+    setTimeout(() => {
+      setCurrentAccount(account);
+      setIsEditing(true);
+      setIsDialogOpen(true);
+    }, 10);
   };
 
   const handleFormSubmit = async (formData) => {
@@ -231,7 +237,19 @@ function Overview() {
         </Tabs>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog 
+        open={isDialogOpen} 
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            // Limpa os estados quando o dialog for fechado
+            setTimeout(() => {
+              setIsEditing(false);
+              setCurrentAccount(null);
+            }, 300); // Aguarda a animação de fechamento terminar
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -241,12 +259,15 @@ function Overview() {
               }
             </DialogTitle>
           </DialogHeader>
-          <AccountForm
-            onSubmit={handleFormSubmit}
-            type={activeTab}
-            initialData={currentAccount}
-            isEditing={isEditing}
-          />
+          {isDialogOpen && (
+            <AccountForm
+              key={currentAccount ? `edit-${currentAccount.id}` : `new-${activeTab}`}
+              onSubmit={handleFormSubmit}
+              type={activeTab}
+              initialData={currentAccount}
+              isEditing={isEditing}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>

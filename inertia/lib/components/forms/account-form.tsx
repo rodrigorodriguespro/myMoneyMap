@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,20 +39,10 @@ interface AccountFormProps {
 const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: AccountFormProps) => {
   const { user, activeWorkspace } = useAuth();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    icon: "",
-    ...(type === "account" 
-      ? { initialBalance: "", initialBalanceDate: new Date().toISOString().split('T')[0] } 
-      : { closing: "", maturity: "", totalLimit: "" }),
-  });
-
-  const [selectedIconClass, setSelectedIconClass] = useState<string>("");
-
-  useEffect(() => {
+  // Inicialize o estado com os valores iniciais ou valores padrão
+  const [formData, setFormData] = useState(() => {
     if (initialData && isEditing) {
-      setFormData((prev) => ({
-        ...prev,
+      return {
         name: initialData.name || "",
         icon: initialData.icon || "",
         ...(type === "account" 
@@ -67,13 +57,17 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
               maturity: initialData.maturity?.toString() || "",
               totalLimit: initialData.totalLimit?.toString() || ""
             }),
-      }));
-
-      if (initialData.icon && initialData.icon !== selectedIconClass) {
-        setSelectedIconClass(initialData.icon);
-      }
+      };
     }
-  }, [initialData, isEditing, type, selectedIconClass]);
+    
+    return {
+      name: "",
+      icon: "",
+      ...(type === "account" 
+        ? { initialBalance: "", initialBalanceDate: new Date().toISOString().split('T')[0] } 
+        : { closing: "", maturity: "", totalLimit: "" }),
+    };
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,16 +75,14 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
   };
 
   const handleIconSelect = (value) => {
-    setSelectedIconClass(value);
     setFormData((prev) => ({ ...prev, icon: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    
     const processedData = {
       ...formData,
-      icon: selectedIconClass || formData.icon,
       ...(type === "account" 
         ? { 
             initialBalance: parseFloat(formData.initialBalance) || 0,
@@ -113,14 +105,14 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
   };
 
   const renderSelectValue = () => {
-    if (!selectedIconClass) {
+    if (!formData.icon) {
       return "Selecione um ícone";
     }
 
     return (
       <div className="flex items-center">
-        <span className={`${selectedIconClass} mr-2 text-xl`}></span>
-        <span>{getSelectedIconName(selectedIconClass)}</span>
+        <span className={`${formData.icon} mr-2 text-xl`}></span>
+        <span>{getSelectedIconName(formData.icon)}</span>
       </div>
     );
   };
@@ -142,7 +134,7 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
       <div>
         <Label htmlFor="icon">Ícone</Label>
         <Select 
-          value={selectedIconClass}
+          value={formData.icon || undefined}
           onValueChange={handleIconSelect}
         >
           <SelectTrigger id="icon" className="w-full">
@@ -176,7 +168,6 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
               required 
             />
           </div>
-
           <div>
             <Label htmlFor="initialBalanceDate">Data do Saldo Inicial</Label>
             <Input 
@@ -206,7 +197,6 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
                 required 
               />
             </div>
-
             <div className="flex-1">
               <Label htmlFor="maturity">Dia de Vencimento</Label>
               <Input 
@@ -222,7 +212,6 @@ const AccountForm = ({ onSubmit, type, initialData, isEditing = false }: Account
               />
             </div>
           </div>
-
           <div>
             <Label htmlFor="totalLimit">Limite Total</Label>
             <Input 
