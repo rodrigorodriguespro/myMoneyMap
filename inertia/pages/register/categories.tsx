@@ -12,6 +12,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Trash2, Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { CirclePlus } from "lucide-react";
+
 
 const mockData = [
   {
@@ -69,6 +71,15 @@ function Categories() {
   return (
     <>
       <HeaderBreadcrump crumbLink="Cadastro" crumbPage="Categorias" />
+      <div className="flex items-center justify-between w-full mb-4">
+        <Button
+          variant="outline"
+          className="ml-4 flex items-center gap-1 px-3 py-1 text-sm font-medium rounded"
+        >
+          <CirclePlus className="size-4" />
+          Adicionar
+        </Button>
+      </div>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <Table>
           <TableHeader>

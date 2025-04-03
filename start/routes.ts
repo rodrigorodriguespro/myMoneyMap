@@ -12,7 +12,7 @@ router.on('/').renderInertia('home')
 router.on('/singup').renderInertia('singup')
 router.on('/dashboard').renderInertia('dashboard')
 router.on('/overview').renderInertia('overview')
-router.on('/register/categories').renderInertia('categories')
+router.on('/register/categories').renderInertia('register/categories')
 
 // Rotas registros de contas
 router.on('/register/accounts').renderInertia('register/accounts')
