@@ -1,28 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 
-interface User {
-  id: number
-  fullName: string
-  email: string
-  activeWorkspace?: Object
-  workspaces?: Array<Workspace>
-}
-
 interface Workspace {
   id: number
   name: string
   icon?: string
 }
 
-interface AuthContextType {
-  user: User | null
-  token: string | null
-  activeWorkspace: Workspace | null
-  setActiveWorkspace: (workspace: Workspace) => void;
-  login: (payload: LoginPayload) => Promise<void>
-  register: (payload: RegisterPayload) => Promise<void>
-  logout: () => Promise<void>
-  me: () => Promise<User>
+interface User {
+  id: number
+  fullName: string
+  email: string
+  activeWorkspace?: Workspace
+  workspaces?: Array<Workspace>
 }
 
 interface LoginPayload {
@@ -39,16 +28,38 @@ interface AuthResult {
   token: string
 }
 
+interface AuthContextType {
+  user: User | null
+  token: string | null
+  activeWorkspace: Workspace | null
+  isReady: boolean
+  setActiveWorkspace: (workspace: Workspace) => void
+  login: (payload: LoginPayload) => Promise<void>
+  register: (payload: RegisterPayload) => Promise<void>
+  logout: () => Promise<void>
+  me: () => Promise<User>
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
-  const [activeWorkspace, setActiveWorkspace] = useState<Object | null>(null)
+  const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null)
+  const [initialized, setInitialized] = useState(false)
+  const [isReady, setIsReady] = useState(false)
 
+  // Recupera token e workspace salvos no localStorage na montagem do componente
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setToken(localStorage.getItem('token'))
+      const storedToken = localStorage.getItem('token')
+      if (storedToken) {
+        setToken(storedToken)
+      } else {
+        // Se não há token, podemos marcar como pronto (não autenticado)
+        setIsReady(true)
+      }
+      
       const savedWorkspace = localStorage.getItem('activeWorkspace')
       if (savedWorkspace) {
         setActiveWorkspace(JSON.parse(savedWorkspace))
@@ -56,12 +67,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
+  // Chama o método me() apenas uma vez após o token ser definido, evitando chamadas repetidas
+  useEffect(() => {
+    if (token && !user && !initialized) {
+      me()
+        .then(() => {
+          setInitialized(true)
+          setIsReady(true)
+        })
+        .catch(err => {
+          console.error('Erro ao buscar dados do usuário:', err)
+          setIsReady(true) // Marca como pronto mesmo em caso de erro
+        })
+    }
+  }, [token, user, initialized])
+
+  // Função genérica para fazer chamadas à API
   const api = async <T extends object>(method: string, url: string, payload: T = {} as T) => {
+    // Verifica se o token está disponível para requisições autenticadas
+    if (!token && url.includes('/auth/me')) {
+      throw new Error('Token de autenticação não disponível')
+    }
+
     const response = await fetch(`${url}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
       body: method !== 'GET' ? JSON.stringify(payload) : null,
     })
@@ -73,6 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return response.json()
   }
 
+  // Armazena o token no estado e no localStorage
   const authenticate = (result: AuthResult) => {
     setToken(result.token)
     if (typeof window !== 'undefined') {
@@ -80,37 +113,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const handleWorkspaces = (workspaces: Array<{ id: number, name: string, icon?: string }>) => {
+  // Gerencia o workspace ativo com base na lista de workspaces do usuário
+  const handleWorkspaces = (workspaces: Array<Workspace>) => {
     const savedWorkspace = localStorage.getItem('activeWorkspace')
     if (savedWorkspace) {
       const parsedWorkspace = JSON.parse(savedWorkspace)
       const isValidWorkspace = workspaces.some(workspace => workspace.id === parsedWorkspace.id)
       if (isValidWorkspace) {
         setActiveWorkspace(parsedWorkspace)
-      } else {
+      } else if (workspaces.length > 0) {
         setActiveWorkspace(workspaces[0])
         localStorage.setItem('activeWorkspace', JSON.stringify(workspaces[0]))
       }
     } else {
-      setActiveWorkspace(workspaces[0])
-      localStorage.setItem('activeWorkspace', JSON.stringify(workspaces[0]))
+      if (workspaces.length > 0) {
+        setActiveWorkspace(workspaces[0])
+        localStorage.setItem('activeWorkspace', JSON.stringify(workspaces[0]))
+      }
     }
   }
 
+  // Login: autentica o usuário, armazena token e busca dados do usuário
   const login = async (payload: LoginPayload) => {
     const result = await api('POST', '/auth/login', payload)
     authenticate(result)
-    const user = await me()
-    handleWorkspaces(user.workspaces || [])
+    const userData = await me()
+    handleWorkspaces(userData.workspaces || [])
   }
 
+  // Registro: cadastra o usuário, armazena token e busca dados do usuário
   const register = async (payload: RegisterPayload) => {
     const result = await api('POST', '/auth/register', payload)
     authenticate(result)
-    const user = await me()
-    handleWorkspaces(user.workspaces || [])
+    const userData = await me()
+    handleWorkspaces(userData.workspaces || [])
   }
 
+  // Logout: encerra a sessão do usuário e limpa os dados armazenados
   const logout = async () => {
     await api('DELETE', '/auth/logout')
     setToken(null)
@@ -122,6 +161,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  // Busca os dados do usuário a partir do token
   const me = async () => {
     const result = await api('GET', '/auth/me')
     setUser(result.user)
@@ -130,7 +170,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, activeWorkspace, setActiveWorkspace, login, register, logout, me }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        activeWorkspace,
+        isReady,
+        setActiveWorkspace,
+        login,
+        register,
+        logout,
+        me,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

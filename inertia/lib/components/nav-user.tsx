@@ -40,16 +40,44 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  const { me } = useAuth()
+  const { me, user: authUser, isReady, logout } = useAuth()
   const [userData, setUserData] = useState<{ fullName: string, email: string }>({ fullName: '', email: '' })
+  const [isLoading, setIsLoading] = useState(false)
 
+  // Efeito para atualizar os dados do usuário do contexto de autenticação
   useEffect(() => {
-    const fetchUserData = async () => {
-      const data = await me()
-      setUserData({ fullName: data.fullName, email: data.email })
+    if (authUser) {
+      setUserData({ fullName: authUser.fullName, email: authUser.email })
     }
+  }, [authUser])
+
+  // Efeito separado para buscar dados quando necessário
+  useEffect(() => {
+    // Se já temos dados ou não estamos prontos para buscar, não faça nada
+    if (!isReady || isLoading || userData.fullName) {
+      return
+    }
+    
+    const fetchUserData = async () => {
+      setIsLoading(true)
+      try {
+        const data = await me()
+        setUserData({ fullName: data.fullName, email: data.email })
+      } catch (error) {
+        console.error("Erro ao carregar dados do usuário:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
     fetchUserData()
-  }, [me])
+  }, [isReady, isLoading, me, userData.fullName])
+
+  const handleLogout = () => {
+    logout().catch(error => {
+      console.error("Erro ao fazer logout:", error)
+    })
+  }
 
   return (
     <SidebarMenu>
@@ -61,12 +89,16 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.fullName} />
-                <AvatarFallback className="rounded-lg">{userData.fullName.split(' ').map(name => name[0]).join('').toUpperCase()}</AvatarFallback>
+                <AvatarImage alt={userData.fullName || 'Usuário'} />
+                <AvatarFallback className="rounded-lg">
+                  {userData.fullName 
+                    ? userData.fullName.split(' ').map(name => name[0]).join('').toUpperCase() 
+                    : 'U'}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{userData.fullName}</span>
-                <span className="truncate text-xs">{userData.email}</span>
+                <span className="truncate font-semibold">{userData.fullName || 'Carregando...'}</span>
+                <span className="truncate text-xs">{userData.email || ''}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -80,12 +112,16 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.fullName} />
-                  <AvatarFallback className="rounded-lg">{userData.fullName.split(' ').map(name => name[0]).join('').toUpperCase()}</AvatarFallback>
+                  <AvatarImage src={user.avatar} alt={userData.fullName || 'Usuário'} />
+                  <AvatarFallback className="rounded-lg">
+                    {userData.fullName 
+                      ? userData.fullName.split(' ').map(name => name[0]).join('').toUpperCase() 
+                      : 'U'}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{userData.fullName}</span>
-                  <span className="truncate text-xs">{userData.email}</span>
+                  <span className="truncate font-semibold">{userData.fullName || 'Carregando...'}</span>
+                  <span className="truncate text-xs">{userData.email || ''}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -100,7 +136,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Sair
             </DropdownMenuItem>
