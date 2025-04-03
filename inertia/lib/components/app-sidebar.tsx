@@ -9,6 +9,7 @@ import {
   BadgeCheck,
   CircleFadingPlus
 } from "lucide-react"
+import { usePage } from "@inertiajs/react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -142,13 +143,47 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // Obtém a página atual do Inertia
+  const { url } = usePage();
+  
+  // Limpa a URL para comparação
+  const currentPath = url.startsWith('/') ? url : `/${url}`;
+  
+  // Prepara os dados do menu com verificação de itens ativos
+  const prepareMenuItems = () => {
+    return data.navMain.map(group => {
+      // Copia o grupo para não mutar o original
+      const newGroup = { ...group };
+      
+      // Verifica se o próprio grupo está ativo
+      newGroup.isActive = currentPath === group.url;
+      
+      // Prepara os subitens com verificação de atividade
+      if (newGroup.items) {
+        newGroup.items = group.items.map(item => ({
+          ...item,
+          isActive: currentPath === item.url
+        }));
+        
+        // Um grupo também está ativo se qualquer de seus subitens estiver ativo
+        if (!newGroup.isActive) {
+          newGroup.isActive = newGroup.items.some(item => item.isActive);
+        }
+      }
+      
+      return newGroup;
+    });
+  };
+
+  const activeMenuItems = prepareMenuItems();
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={activeMenuItems} currentPath={currentPath} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
