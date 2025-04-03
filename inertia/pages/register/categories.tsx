@@ -1,235 +1,186 @@
-import DashLayout from '~/layouts/DashLayout'
-import HeaderBreadcrump from '~/lib/components/header-breadcrump'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableFooter,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Trash2, Pencil, Plus } from 'lucide-react'
-import { useState } from 'react'
-import { CirclePlus } from "lucide-react";
-
-
-const mockData = [
-  {
-    id: 1,
-    categoria: '💸 Receita',
-    descricao: 'Receita',
-    tipoCategoria: 'Entrada',
-    tipoGasto: 'Essencial',
-    orcado: 'R$ 50,00',
-  },
-  {
-    id: 2,
-    categoria: '💸 Despesa',
-    descricao: 'Despesa',
-    tipoCategoria: 'Saída',
-    tipoGasto: 'Não Essencial',
-    orcado: 'R$ 100,00',
-  },
-  {
-    id: 3,
-    categoria: '💸 Investimento',
-    descricao: 'Investimento',
-    tipoCategoria: 'Entrada',
-    tipoGasto: 'Essencial',
-    orcado: 'R$ 200,00',
-  },
-]
+import React, { useState, useEffect } from "react";
+import DashLayout from '~/layouts/DashLayout';
+import HeaderBreadcrump from '~/lib/components/header-breadcrump';
+import { Button } from '@/components/ui/button';
+import { CirclePlus, AlertCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TableRegisterCategories } from "@/components/tables/table-register-categories";
+import CategoryForm from "@/components/forms/category-form";
+import { useCategoryService, Category } from "@/services/categories-service";
+import { useAuth } from "~/stores/auth";
 
 function Categories() {
-  const [editingRow, setEditingRow] = useState<number | null>(null)
-  const [editingField, setEditingField] = useState<string | null>(null)
-  const [formData, setFormData] = useState(mockData)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
 
-  const handleEdit = (index: number, field: string, value: string) => {
-    const updatedData = formData.map((item, i) =>
-      i === index ? { ...item, [field]: value } : item
-    )
-    setFormData(updatedData)
-    // Disparar função para atualizar o backend
-    console.log(`Editando linha ${index}, campo ${field}, novo valor: ${value}`)
-  }
+  const categoryService = useCategoryService();
+  const { activeWorkspace, user } = useAuth();
 
-  const addNewCategory = () => {
-    const newCategory = {
-      id: formData.length + 1,
-      categoria: '💸 Nova Categoria',
-      descricao: 'Descrição',
-      tipoCategoria: 'Entrada',
-      tipoGasto: 'Essencial',
-      orcado: 'R$ 0,00',
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const data = await categoryService.getAll();
+      setCategories(data);
+    } catch (error) {
+      console.error("Erro ao buscar categorias:", error);
+      setError("Não foi possível carregar as categorias. Tente novamente mais tarde.");
+      setCategories([]);
+    } finally {
+      setIsLoading(false);
     }
-    setFormData([...formData, newCategory])
-  }
+  };
+
+  const handleEdit = (category: Category) => {
+    // Primeiro limpa e depois define os valores para evitar problemas de renderização
+    setIsEditing(false);
+    setCurrentCategory(null);
+    
+    // Pequeno timeout para garantir que o estado foi limpo antes de definir novos valores
+    setTimeout(() => {
+      setCurrentCategory(category);
+      setIsEditing(true);
+      setIsDialogOpen(true);
+    }, 10);
+  };
+
+  const handleFormSubmit = async (formData: any) => {
+    try {
+      if (isEditing && currentCategory?.id) {
+        // Atualização de categoria existente
+        await categoryService.update(currentCategory.id, formData);
+      } else {
+        // Criação de nova categoria
+        const dataWithIds = {
+          ...formData,
+          userId: user?.id,
+          workspaceId: activeWorkspace?.id,
+        };
+        await categoryService.create(dataWithIds);
+      }
+
+      // Atualiza a lista e fecha o formulário
+      await fetchCategories();
+      setIsDialogOpen(false);
+      setIsEditing(false);
+      setCurrentCategory(null);
+    } catch (error) {
+      console.error(`Erro ao ${isEditing ? 'atualizar' : 'criar'} categoria:`, error);
+      setError(`Erro ao ${isEditing ? 'atualizar' : 'criar'} categoria. Verifique os dados e tente novamente.`);
+    }
+  };
+
+  const handleAddClick = () => {
+    setIsEditing(false);
+    setCurrentCategory(null);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (category: Category) => {
+    if (!category.id) return;
+    
+    try {
+      await categoryService.delete(category.id);
+      await fetchCategories();
+    } catch (error) {
+      console.error("Erro ao excluir categoria:", error);
+      setError("Não foi possível excluir a categoria. Tente novamente mais tarde.");
+    }
+  };
+
+  const renderEmptyState = () => (
+    <div className="flex flex-col items-center justify-center h-40 border border-dashed border-gray-300 rounded-md p-6 bg-gray-50">
+      <AlertCircle className="size-8 text-gray-400 mb-2" />
+      <p className="text-gray-500 text-center">
+        Nenhuma categoria registrada.
+      </p>
+      <p className="text-gray-500 text-center">
+        Clique em "Adicionar" para criar uma nova.
+      </p>
+    </div>
+  );
 
   return (
     <>
       <HeaderBreadcrump crumbLink="Cadastro" crumbPage="Categorias" />
-      <div className="flex items-center justify-between w-full mb-4">
-        <Button
-          variant="outline"
-          className="ml-4 flex items-center gap-1 px-3 py-1 text-sm font-medium rounded"
-        >
-          <CirclePlus className="size-4" />
-          Adicionar
-        </Button>
-      </div>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-left">Categoria</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Tipo de Categoria</TableHead>
-              <TableHead className="text-right">Tipo de Gasto</TableHead>
-              <TableHead className="text-right">Orçado</TableHead>
-              <TableHead className="text-right">...</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {formData.map((row, index) => (
-              <TableRow key={row.id}>
-                <TableCell className="font-medium">
-                  {editingRow === index && editingField === 'categoria' ? (
-                    <input
-                      type="text"
-                      value={row.categoria}
-                      onChange={(e) => handleEdit(index, 'categoria', e.target.value)}
-                      onBlur={() => setEditingRow(null)}
-                    />
-                  ) : (
-                    <span
-                      onClick={() => {
-                        setEditingRow(index)
-                        setEditingField('categoria')
-                      }}
-                    >
-                      {row.categoria}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {editingRow === index && editingField === 'descricao' ? (
-                    <input
-                      type="text"
-                      value={row.descricao}
-                      onChange={(e) => handleEdit(index, 'descricao', e.target.value)}
-                      onBlur={() => setEditingRow(null)}
-                    />
-                  ) : (
-                    <span
-                      onClick={() => {
-                        setEditingRow(index)
-                        setEditingField('descricao')
-                      }}
-                    >
-                      {row.descricao}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {editingRow === index && editingField === 'tipoCategoria' ? (
-                    <select
-                      value={row.tipoCategoria}
-                      onChange={(e) => handleEdit(index, 'tipoCategoria', e.target.value)}
-                      onBlur={() => setEditingRow(null)}
-                    >
-                      <option value="Entrada">Entrada</option>
-                      <option value="Saída">Saída</option>
-                    </select>
-                  ) : (
-                    <span
-                      onClick={() => {
-                        setEditingRow(index)
-                        setEditingField('tipoCategoria')
-                      }}
-                    >
-                      {row.tipoCategoria}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  {editingRow === index && editingField === 'tipoGasto' ? (
-                    <select
-                      value={row.tipoGasto}
-                      onChange={(e) => handleEdit(index, 'tipoGasto', e.target.value)}
-                      onBlur={() => setEditingRow(null)}
-                    >
-                      <option value="Essencial">Essencial</option>
-                      <option value="Não Essencial">Não Essencial</option>
-                    </select>
-                  ) : (
-                    <span
-                      onClick={() => {
-                        setEditingRow(index)
-                        setEditingField('tipoGasto')
-                      }}
-                    >
-                      {row.tipoGasto}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  {editingRow === index && editingField === 'orcado' ? (
-                    <input
-                      type="text"
-                      value={row.orcado}
-                      onChange={(e) => handleEdit(index, 'orcado', e.target.value)}
-                      onBlur={() => setEditingRow(null)}
-                    />
-                  ) : (
-                    <span
-                      onClick={() => {
-                        setEditingRow(index)
-                        setEditingField('orcado')
-                      }}
-                    >
-                      {row.orcado}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="outline" size="icon">
-                    <Trash2 />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={4}>Total</TableCell>
-              <TableCell className="text-right">
-                {formData.reduce((total, row) => {
-                  const value = parseFloat(row.orcado.replace('R$', '').replace(',', '.'))
-                  return total + (isNaN(value) ? 0 : value)
-                }, 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell colSpan={6}>
-                <div
-                  className="flex items-center justify-center p-2 border border-dashed rounded-lg cursor-pointer hover:bg-gray-100"
-                  onClick={addNewCategory}
-                >
-                  <Plus />
-                  Nova Categoria
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableFooter>
-        </Table>
+        <div className="flex items-center justify-between w-full mb-4">
+          <Button
+            variant="outline"
+            className="ml-4 flex items-center gap-1 px-3 py-1 text-sm font-medium rounded"
+            onClick={handleAddClick}
+          >
+            <CirclePlus className="size-4" />
+            Adicionar
+          </Button>
+        </div>
+
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {isLoading ? (
+          <div className="flex justify-center items-center h-40">
+            <p>Carregando...</p>
+          </div>
+        ) : categories.length > 0 ? (
+          <TableRegisterCategories
+            data={categories}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRefresh={fetchCategories}
+          />
+        ) : (
+          renderEmptyState()
+        )}
       </div>
+
+      <Dialog 
+        open={isDialogOpen} 
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            // Limpa os estados quando o dialog for fechado
+            setTimeout(() => {
+              setIsEditing(false);
+              setCurrentCategory(null);
+            }, 300); // Aguarda a animação de fechamento terminar
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {isEditing ? "Editar Categoria" : "Adicionar Categoria"}
+            </DialogTitle>
+          </DialogHeader>
+          {isDialogOpen && (
+            <CategoryForm
+              key={currentCategory ? `edit-${currentCategory.id}` : "new-category"}
+              onSubmit={handleFormSubmit}
+              initialData={currentCategory}
+              isEditing={isEditing}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
-  )
+  );
 }
 
-Categories.layout = DashLayout
+Categories.layout = DashLayout;
 
-export default Categories
+export default Categories;

@@ -11,6 +11,8 @@ export interface Category {
   icon?: string | null
   description?: string | null
   type?: string
+  expenseType?: string
+  budget?: number
   createdAt?: string
   updatedAt?: string
 }
