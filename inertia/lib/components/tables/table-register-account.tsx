@@ -44,7 +44,30 @@ export function TableRegisterAccountBank({ data = [], onEdit, onDelete, onRefres
   const [accountToDelete, setAccountToDelete] = useState<AccountBank | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const totalInitialBalance = data.reduce((total, account) => total + account.initialBalance, 0);
+  // Função auxiliar para garantir que um valor seja convertido para número
+  const parseNumber = (value: any): number => {
+    if (value === null || value === undefined) return 0;
+    
+    // Se for string, tenta converter para número
+    if (typeof value === 'string') {
+      // Remove caracteres não numéricos, exceto ponto decimal
+      const cleaned = value.replace(/[^\d.-]/g, '');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? 0 : num;
+    }
+    
+    // Se já for número, retorna diretamente
+    if (typeof value === 'number') return value;
+    
+    // Para outros tipos, tenta converter ou retorna 0
+    return 0;
+  };
+
+  // Cálculo do saldo total com tratamento adicional para evitar NaN
+  let totalInitialBalance  = 0;
+  for (let i = 0; i < data.length; i++) {
+    totalInitialBalance += parseNumber(data[i].initialBalance);
+  }
 
   const formatDate = (dateString: string) => {
     try {

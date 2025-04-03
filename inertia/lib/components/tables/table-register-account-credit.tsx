@@ -50,8 +50,30 @@ export function TableRegisterAccountCreditBank({
   const [isDeleting, setIsDeleting] = useState(false);
   const accountCreditBankService = useAccountCreditBankService();
 
-  // Calcular o limite total
-  const totalLimit = data.reduce((total, account) => total + account.totalLimit, 0);
+  // Função auxiliar para garantir que um valor seja convertido para número
+  const parseNumber = (value: any): number => {
+    if (value === null || value === undefined) return 0;
+    
+    // Se for string, tenta converter para número
+    if (typeof value === 'string') {
+      // Remove caracteres não numéricos, exceto ponto decimal
+      const cleaned = value.replace(/[^\d.-]/g, '');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? 0 : num;
+    }
+    
+    // Se já for número, retorna diretamente
+    if (typeof value === 'number') return value;
+    
+    // Para outros tipos, tenta converter ou retorna 0
+    return 0;
+  };
+
+  // Calcula o limite total usando um loop tradicional para mais controle
+  let totalLimit = 0;
+  for (let i = 0; i < data.length; i++) {
+    totalLimit += parseNumber(data[i].totalLimit);
+  }
 
   const handleEditClick = (account: AccountCreditBank) => {
     if (onEdit) {
