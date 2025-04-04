@@ -6,6 +6,7 @@ const AuthController = () => import('#controllers/auth_controller')
 const WorkspaceController = () => import('#controllers/workspaces_controller')
 const AccountBanksController = () => import('#controllers/register/account_banks_controller')
 const AccountCreditBanksController = () => import('#controllers/register/account_credit_banks_controller')
+const CategoriesController = () => import('#controllers/register/categories_controller')
 
 // Rotas de views
 router.on('/').renderInertia('home')
@@ -36,6 +37,7 @@ router
   .group(() => {
     router.resource('account_banks', AccountBanksController)
     router.resource('account_credit_banks', AccountCreditBanksController)
+    router.resource('categories', CategoriesController)
   })
   .prefix('/api/register')
   .use(middleware.auth())
