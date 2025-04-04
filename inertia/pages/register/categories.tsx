@@ -57,7 +57,11 @@ function Categories() {
     try {
       if (isEditing && currentCategory?.id) {
         // Atualização de categoria existente
-        await categoryService.update(currentCategory.id, formData);
+        const dataWithIds = {
+          ...formData,
+          workspaceId: activeWorkspace?.id,
+        };
+        await categoryService.update(currentCategory.id, dataWithIds);
       } else {
         // Criação de nova categoria
         const dataWithIds = {

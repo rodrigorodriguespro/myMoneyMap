@@ -26,19 +26,38 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Category } from "@/services/categories-service";
-// Corrigindo a importação do emoji-mart/data
-import * as emojiData from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+import { Smile } from "lucide-react";
 
-const CATEGORY_TYPES = ["Entrada", "Saída", "Transferência"];
-const EXPENSE_TYPES = ["Essencial", "Não Essencial", "Investimento"];
+
+// Estrutura para mapear valores do frontend para o backend
+interface CategoryTypeOption {
+  label: string;
+  value: string;
+}
+
+// Lista de emojis comuns para categorias financeiras
+const commonEmojis = [
+  "💰", "💵", "💸", "💳", "🏦", "🏠", "🚗", "✈️", "🍔", "🛒", 
+  "🎓", "💊", "🎭", "🎮", "📱", "👕", "💼", "🎁", "💝", "🧾",
+  "🔋", "📺", "🏥", "⛽", "🍽️", "🏋️", "💇", "🧹", "🧸", "📚"
+];
+
+const CATEGORY_TYPES: CategoryTypeOption[] = [
+  { label: "Entrada", value: "income" },
+  { label: "Saída", value: "expense" }
+];
+
+const EXPENSE_TYPES: CategoryTypeOption[] = [
+  { label: "Essencial", value: "essential" },
+  { label: "Não Essencial", value: "non-essential" }
+];
 
 // Schema de validação
 const formSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   icon: z.string().optional(),
-  type: z.string().min(1, "Tipo de categoria é obrigatório"),
+  categoryType: z.string().min(1, "Tipo de categoria é obrigatório"),
   expenseType: z.string().optional(),
   budget: z.string().optional().transform(val => val ? parseFloat(val.replace(/[^\d.,]/g, '').replace(',', '.')) : undefined),
 });
@@ -65,8 +84,8 @@ export default function CategoryForm({
       name: initialData?.name || "",
       description: initialData?.description || "",
       icon: initialData?.icon || "",
-      type: initialData?.type || "Saída",
-      expenseType: initialData?.expenseType || "Não Essencial",
+      categoryType: initialData?.categoryType || "expense",
+      expenseType: initialData?.expenseType || "non-essential",
       budget: initialData?.budget 
         ? Intl.NumberFormat('pt-BR', { 
             style: 'currency', 
@@ -76,10 +95,10 @@ export default function CategoryForm({
     },
   });
 
-  const categoryType = form.watch("type");
+  const categoryType = form.watch("categoryType");
 
-  const handleEmojiSelect = (emoji: any) => {
-    form.setValue("icon", emoji.native || emoji.emoji);
+  const handleEmojiSelect = (emoji: string) => {
+    form.setValue("icon", emoji);
     setShowEmojiPicker(false);
   };
 
@@ -106,7 +125,7 @@ export default function CategoryForm({
                 <FormLabel>Emoji</FormLabel>
                 <div className="flex items-center gap-2">
                   <div className="border rounded-md p-2 w-12 h-12 flex items-center justify-center text-2xl">
-                    {field.value || "😀"}
+                    {field.value || <Smile className="h-6 w-6" />}
                   </div>
                   <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                     <PopoverTrigger asChild>
@@ -114,11 +133,19 @@ export default function CategoryForm({
                         Selecionar Emoji
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Picker
-                        data={emojiData}
-                        onEmojiSelect={handleEmojiSelect}
-                      />
+                    <PopoverContent className="w-auto p-4" side="right" align="start">
+                      <div className="grid grid-cols-5 gap-2">
+                        {commonEmojis.map((emoji) => (
+                          <Button
+                            key={emoji}
+                            variant="ghost"
+                            className="h-10 w-10 p-0 text-xl"
+                            onClick={() => handleEmojiSelect(emoji)}
+                          >
+                            {emoji}
+                          </Button>
+                        ))}
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -163,7 +190,7 @@ export default function CategoryForm({
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="type"
+            name="categoryType"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tipo de Categoria</FormLabel>
@@ -178,8 +205,8 @@ export default function CategoryForm({
                   </FormControl>
                   <SelectContent>
                     {CATEGORY_TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -189,7 +216,7 @@ export default function CategoryForm({
             )}
           />
 
-          {categoryType === "Saída" && (
+          {categoryType === "expense" && (
             <FormField
               control={form.control}
               name="expenseType"
@@ -207,8 +234,8 @@ export default function CategoryForm({
                     </FormControl>
                     <SelectContent>
                       {EXPENSE_TYPES.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
