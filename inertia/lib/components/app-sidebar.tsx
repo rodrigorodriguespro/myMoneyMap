@@ -78,19 +78,19 @@ const data = {
       items: [
         {
           title: "Receber",
-          url: "#",
+          url: "/entry/receive",
         },
         {
           title: "Pagar",
-          url: "#",
+          url: "/entry/pay",
         },
         {
           title: "Crédito",
-          url: "#",
+          url: "/entry/credit",
         },
         {
           title: "Fixas",
-          url: "#",
+          url: "/entry/fixed",
         },
       ],
     },

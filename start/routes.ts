@@ -13,10 +13,16 @@ router.on('/').renderInertia('home')
 router.on('/singup').renderInertia('singup')
 router.on('/dashboard').renderInertia('dashboard')
 router.on('/overview').renderInertia('overview')
-router.on('/register/categories').renderInertia('register/categories')
 
 // Rotas registros de contas
 router.on('/register/accounts').renderInertia('register/accounts')
+router.on('/register/categories').renderInertia('register/categories')
+
+// Rotas de registros de lançamentos
+router.on('/entry/pay').renderInertia('entry/pay')
+router.on('/entry/credit').renderInertia('entry/credit')
+router.on('/entry/fixed').renderInertia('entry/fixed')
+router.on('/entry/receive').renderInertia('entry/receive')
 
 // Rotas de autenticação
 router
